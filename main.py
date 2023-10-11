@@ -1,22 +1,12 @@
-# import cv2
-from face_detection import detect_face_mark
+from features.face_detection import detect_face_mark
 
-
+# LFB model math
 model_path = "./LBF/lbfmodel.yaml"
+
+# Function calls
 detect_face_mark(model_path)
 
 
-
-
-
-# # getting the cascade from the image
-# face_cascade = cv2.CascadeClassifier('./haarcascade/haarcascade_frontalface_default.xml')
-# facemark = cv2.face.createFacemarkLBF()
-# eye_cascade = cv2.CascadeClassifier('./haarcascade/haarcascade_eye.xml')
-#
-# # Video file || camera
-# # vid = cv2.VideoCapture('')
-# vid = cv2.VideoCapture(0)
 # # counting eye looking at camera
 # look_count = 0
 # # frames that looking at the camera
@@ -69,9 +59,3 @@ detect_face_mark(model_path)
 #
 #
 #     cv2.imshow('Video', frame)
-#     if cv2.waitKey(1) & 0xFF == ord('q'):
-#         break
-#
-# vid.release()
-# cv2.destroyAllWindows()
-# print(f"Looked at the camera {look_count} times.")
