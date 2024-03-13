@@ -7,7 +7,11 @@ from features.GazeTracking.gaze_tracking.gaze_tracking import GazeTracking
 current_path = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(current_path, "shape_predictor_68_face_landmarks.dat")
 
-detector = dlib.get_frontal_face_detector()  # 使用HOG检测器
+# detector = dlib.get_frontal_face_detector()  # 使用HOG检测器
+# MTCNN
+cnn_model_path = os.path.join(current_path, "mmod_human_face_detector.dat")
+cnn_face_detector = dlib.cnn_face_detection_model_v1(cnn_model_path)
+
 predictor = dlib.shape_predictor(model_path)
 
 gaze = GazeTracking()
@@ -22,22 +26,24 @@ while True:
     # 可以选择进一步缩小图像尺寸来提高速度
     small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
     gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
-    faces = detector(gray, 1)  # 使用HOG检测器
+    # faces = detector(gray, 1)  # 使用HOG检测器
+    faces = cnn_face_detector(gray, 1)  # 使用MTCNN
 
     for face in faces:
-        x1 = int(face.left() * 2)
-        y1 = int(face.top() * 2)
-        x2 = int(face.right() * 2)
-        y2 = int(face.bottom() * 2)
+        x1 = int(face.rect.left() * 2)
+        y1 = int(face.rect.top() * 2)
+        x2 = int(face.rect.right() * 2)
+        y2 = int(face.rect.bottom() * 2)
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-        landmarks = predictor(gray, face)
+        landmarks = predictor(gray, face.rect)
         for n in range(0, 68):
-            # mark down all 68 points
             x = int(landmarks.part(n).x * 2)
             y = int(landmarks.part(n).y * 2)
             cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
+        ##############################################################
+        # detect the face frontal
         # 获取眼睛中心点
         left_eye_center = np.mean(np.array([(landmarks.part(n).x, landmarks.part(n).y) for n in range(36, 42)]), axis=0)
         right_eye_center = np.mean(np.array([(landmarks.part(n).x, landmarks.part(n).y) for n in range(42, 48)]),
