@@ -29,10 +29,14 @@ def detect_pupils(eye_region, frame, start_point):
     dilated_eye = cv2.dilate(thresh, kernel, iterations=2)
 
     # 在Otsu's阈值化后，显示二值化的眼睛图像
-    # cv2.imshow("Thresholded Eye", thresh)
+    cv2.imshow("Thresholded Eye", thresh)
 
     # 查找轮廓
     contours, _ = cv2.findContours(dilated_eye, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    
+
+    # Rim Centre
     if contours:  # 检查是否有轮廓被检测到
         c = max(contours, key=cv2.contourArea)  # 获取最大的轮廓
         M = cv2.moments(c)
@@ -49,7 +53,7 @@ def detect_pupils(eye_region, frame, start_point):
             # 在原始帧上标记瞳孔中心为红色
             cv2.circle(frame, (cX, cY), 2, (0, 0, 255), -1)
             cv2.drawContours(eye_region, contours, -1, (0, 255, 0), 1)
-            cv2.imshow('Contours', eye_region)
+            # cv2.imshow('Contours', eye_region)
 
         else:
             cX, cY = 0, 0

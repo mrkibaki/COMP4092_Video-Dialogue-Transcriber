@@ -1,10 +1,12 @@
-from features.face_detection import detect_face_mark
+# from features.face_detection import detect_face_mark
+from features.FD_with_dlib import detect_face_mark
 
 # LFB model math
 model_path = "./LBF/lbfmodel.yaml"
 
 # Function calls
 detect_face_mark(model_path)
+
 
 
 # # counting eye looking at camera
@@ -23,7 +25,7 @@ detect_face_mark(model_path)
 #     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 #     face = face_cascade.detectMultiScale(gray, 1.3, 5)
 #
-#     looking = False
+#     looking = Falseq
 #     for (x, y, w, h) in face:
 #      # framing the face
 #      cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
