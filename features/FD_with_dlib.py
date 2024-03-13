@@ -5,6 +5,7 @@ import numpy as np
 from features.GazeTracking.gaze_tracking.gaze_tracking import GazeTracking
 
 current_path = os.path.dirname(os.path.abspath(__file__))
+video_path = os.path.join(current_path, "tester.mp4")
 model_path = os.path.join(current_path, "shape_predictor_68_face_landmarks.dat")
 
 detector = dlib.get_frontal_face_detector()  # 使用HOG检测器
@@ -12,7 +13,18 @@ predictor = dlib.shape_predictor(model_path)
 
 gaze = GazeTracking()
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(video_path)
+
+# 获取视频的宽度、高度和帧率
+frame_width = int(cap.get(3))
+frame_height = int(cap.get(4))
+fps = cap.get(cv2.CAP_PROP_FPS)
+
+# 定义VideoWriter对象
+output_path = os.path.join(current_path, "output_video.avi")
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
+
 
 while True:
     ret, frame = cap.read()
@@ -84,6 +96,18 @@ while True:
     cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
     cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
 
+    # 保存帧到输出视频
+    out.write(frame)
+
+    cv2.imshow("Frame", frame)
+    key = cv2.waitKey(1)
+    if key == 27:
+        break
+
+cap.release()
+out.release()  # 释放VideoWriter对象
+cv2.destroyAllWindows()
+
     ##############################################################
     # # Eye pupil
     # for eye_points in [range(36, 42), range(42, 48)]:
@@ -128,10 +152,3 @@ while True:
     #             pupil_center_global = ((cx + x) * 2, (cy + y) * 2)
     #             cv2.circle(frame, pupil_center_global, 3, (0, 0, 255), -1)
 
-    cv2.imshow("Frame", frame)
-    key = cv2.waitKey(1)
-    if key == 27:
-        break
-
-cap.release()
-cv2.destroyAllWindows()
