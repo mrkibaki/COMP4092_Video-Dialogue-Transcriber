@@ -20,22 +20,21 @@ while True:
         break
 
     # 可以选择进一步缩小图像尺寸来提高速度
-    small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
-    gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
+    # small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = detector(gray, 1)  # 使用HOG检测器
 
     for face in faces:
-        x1 = int(face.left() * 2)
-        y1 = int(face.top() * 2)
-        x2 = int(face.right() * 2)
-        y2 = int(face.bottom() * 2)
+        x1 = face.left()
+        y1 = face.top()
+        x2 = face.right()
+        y2 = face.bottom()
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
         landmarks = predictor(gray, face)
         for n in range(0, 68):
-            # mark down all 68 points
-            x = int(landmarks.part(n).x * 2)
-            y = int(landmarks.part(n).y * 2)
+            x = landmarks.part(n).x
+            y = landmarks.part(n).y
             cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
         # 获取眼睛中心点
