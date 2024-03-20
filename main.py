@@ -1,11 +1,11 @@
-# from features.face_detection import detect_face_mark
+from features.FD_with_dlib import face_detection
+
+
 # LFB model math
 model_path = "./LBF/lbfmodel.yaml"
 
-
-
 # Function calls
-# detect_face_mark(model_path)
+face_detection()
 
 
 

@@ -6,106 +6,107 @@ from features.GazeTracking.gaze_tracking.gaze_tracking import GazeTracking
 from features.head_pose_estimation import estimate_head_pose
 
 
-current_path = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(current_path, "Models/shape_predictor_68_face_landmarks.dat")
+def face_detection():
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(current_path, "Models/shape_predictor_68_face_landmarks.dat")
 
-detector = dlib.get_frontal_face_detector()  # 使用HOG检测器
-predictor = dlib.shape_predictor(model_path)
+    detector = dlib.get_frontal_face_detector()  # 使用HOG检测器
+    predictor = dlib.shape_predictor(model_path)
 
-gaze = GazeTracking()
+    gaze = GazeTracking()
 
-cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0)
 
-# camera calication data from ocv
-camera_matrix = np.array([[832.38183417, 0.0, 686.32961237],
-                          [0.0, 838.8275083, 440.29031722],
-                          [0.0, 0.0, 1.0]])
+    # camera calication data from ocv
+    camera_matrix = np.array([[832.38183417, 0.0, 686.32961237],
+                              [0.0, 838.8275083, 440.29031722],
+                              [0.0, 0.0, 1.0]])
 
-dist_coeffs = np.array([-0.1321268, 0.04720366, 0.02581908, 0.02791332, 0.04725764])
+    dist_coeffs = np.array([-0.1321268, 0.04720366, 0.02581908, 0.02791332, 0.04725764])
 
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+        # 可以选择进一步缩小图像尺寸来提高速度
+        small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+        gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
+        faces = detector(gray, 1)  # 使用HOG检测器
 
-    # 可以选择进一步缩小图像尺寸来提高速度
-    small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
-    gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
-    faces = detector(gray, 1)  # 使用HOG检测器
+        # 这里使用的坐标应根据您的模型参考调整
+        model_points = np.array([
+            (0.0, 0.0, 0.0),  # 鼻尖
+            (0.0, -330.0, -65.0),  # 下巴
+            (-225.0, 170.0, -135.0),  # 左眼左角
+            (225.0, 170.0, -135.0),  # 右眼右角
+            (-150.0, -150.0, -125.0),  # 左嘴角
+            (150.0, -150.0, -125.0)  # 右嘴角
+        ])
 
-    # 这里使用的坐标应根据您的模型参考调整
-    model_points = np.array([
-        (0.0, 0.0, 0.0),  # 鼻尖
-        (0.0, -330.0, -65.0),  # 下巴
-        (-225.0, 170.0, -135.0),  # 左眼左角
-        (225.0, 170.0, -135.0),  # 右眼右角
-        (-150.0, -150.0, -125.0),  # 左嘴角
-        (150.0, -150.0, -125.0)  # 右嘴角
-    ])
+        # 摄像头内参，这里使用的是示例值，应根据您的相机进行调整
+        size = frame.shape
+        focal_length = size[1]
+        center = (size[1] // 2, size[0] // 2)
 
-    # 摄像头内参，这里使用的是示例值，应根据您的相机进行调整
-    size = frame.shape
-    focal_length = size[1]
-    center = (size[1] // 2, size[0] // 2)
+        for face in faces:
+            x1 = int(face.left() * 2)
+            y1 = int(face.top() * 2)
+            x2 = int(face.right() * 2)
+            y2 = int(face.bottom() * 2)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    for face in faces:
-        x1 = int(face.left() * 2)
-        y1 = int(face.top() * 2)
-        x2 = int(face.right() * 2)
-        y2 = int(face.bottom() * 2)
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            landmarks = predictor(gray, face)
+            for n in range(0, 68):
+                # mark down all 68 points
+                x = int(landmarks.part(n).x * 2)
+                y = int(landmarks.part(n).y * 2)
+                cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
-        landmarks = predictor(gray, face)
-        for n in range(0, 68):
-            # mark down all 68 points
-            x = int(landmarks.part(n).x * 2)
-            y = int(landmarks.part(n).y * 2)
-            cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
+            # 获取用于 solvePnP 的 2D 点
+            image_points = np.array([
+                (landmarks.part(33).x * 2, landmarks.part(33).y * 2),  # 鼻尖
+                (landmarks.part(8).x * 2, landmarks.part(8).y * 2),  # 下巴
+                (landmarks.part(36).x * 2, landmarks.part(36).y * 2),  # 左眼左角
+                (landmarks.part(45).x * 2, landmarks.part(45).y * 2),  # 右眼右角
+                (landmarks.part(48).x * 2, landmarks.part(48).y * 2),  # 左嘴角
+                (landmarks.part(54).x * 2, landmarks.part(54).y * 2)  # 右嘴角
+            ], dtype="double")
 
-        # 获取用于 solvePnP 的 2D 点
-        image_points = np.array([
-            (landmarks.part(33).x * 2, landmarks.part(33).y * 2),  # 鼻尖
-            (landmarks.part(8).x * 2, landmarks.part(8).y * 2),  # 下巴
-            (landmarks.part(36).x * 2, landmarks.part(36).y * 2),  # 左眼左角
-            (landmarks.part(45).x * 2, landmarks.part(45).y * 2),  # 右眼右角
-            (landmarks.part(48).x * 2, landmarks.part(48).y * 2),  # 左嘴角
-            (landmarks.part(54).x * 2, landmarks.part(54).y * 2)  # 右嘴角
-        ], dtype="double")
+            # Call the function to estimate head pose
+            p1, p2 = estimate_head_pose(image_points, model_points, camera_matrix, dist_coeffs)
 
-        # Call the function to estimate head pose
-        p1, p2 = estimate_head_pose(image_points, model_points, camera_matrix, dist_coeffs)
+            # 绘制线条：从鼻尖到计算出的点
+            cv2.line(frame, p1, p2, (255, 0, 0), 2)
 
-        # 绘制线条：从鼻尖到计算出的点
-        cv2.line(frame, p1, p2, (255, 0, 0), 2)
+        gaze.refresh(frame)
 
-    gaze.refresh(frame)
+        frame = gaze.annotated_frame()
+        text = ""
+        if gaze.is_blinking():
+            text = "Blinking"
+        elif gaze.is_right():
+            text = "Looking right"
+        elif gaze.is_left():
+            text = "Looking left"
+        elif gaze.is_center():
+            text = "Looking center"
 
-    frame = gaze.annotated_frame()
-    text = ""
-    if gaze.is_blinking():
-        text = "Blinking"
-    elif gaze.is_right():
-        text = "Looking right"
-    elif gaze.is_left():
-        text = "Looking left"
-    elif gaze.is_center():
-        text = "Looking center"
+        cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
 
-    cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
+        left_pupil = gaze.pupil_left_coords()
+        right_pupil = gaze.pupil_right_coords()
+        cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+        cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31),
+                    1)
 
-    left_pupil = gaze.pupil_left_coords()
-    right_pupil = gaze.pupil_right_coords()
-    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
-    cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+        cv2.imshow("Frame", frame)
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
 
-    cv2.imshow("Frame", frame)
-    key = cv2.waitKey(1)
-    if key == 27:
-        break
-
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
 
 ##############################################################
 # # Eye pupil
