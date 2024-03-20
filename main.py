@@ -1,11 +1,18 @@
 # from features.face_detection import detect_face_mark
-from features.FD_with_dlib import detect_face_mark
+
+# uncomment this to capture the calibration img
+from CameraCalibrationTool.capture_calibration_img import capture_calibration_images
+# calibration
+capture_calibration_images()
 
 # LFB model math
 model_path = "./LBF/lbfmodel.yaml"
 
+
+
 # Function calls
-detect_face_mark(model_path)
+# detect_face_mark(model_path)
+
 
 
 
