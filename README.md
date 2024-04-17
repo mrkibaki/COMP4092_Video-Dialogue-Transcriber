@@ -13,4 +13,6 @@ Technology and developing tools might be utilised:
 
 ----
 
-TO BE ADDED...
+To make sure the body language analysis module working, pls make
+sure your machine installed cmake protobuf opencv, and the 
+OpenPose&OpenCV library

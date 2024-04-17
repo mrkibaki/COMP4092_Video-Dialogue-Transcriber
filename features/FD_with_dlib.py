@@ -1,9 +1,11 @@
 import cv2
 import dlib
 import os
-import numpy as np
 from features.GazeTracking.gaze_tracking.gaze_tracking import GazeTracking
 from features.head_pose_estimation import estimate_head_pose
+
+from features.FaceModalAnalysisAlgorithm.MouthModalities import *
+from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import IsSmiling
 
 
 def face_detection():
@@ -62,6 +64,31 @@ def face_detection():
                 x = int(landmarks.part(n).x * 2)
                 y = int(landmarks.part(n).y * 2)
                 cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
+
+            # 模态检视部分，用于查看是否有张嘴或微笑
+            if MouthOpening(landmarks):
+                cv2.putText(frame, "Mouth is open", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            else:
+                cv2.putText(frame, "Mouth is closed", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+
+            # 计算是否咧嘴
+            Grinning = IsGrinning(landmarks)
+
+            # 显示结果
+            lips_status = "Grinning" if Grinning else "Not Grinning"
+            cv2.putText(frame, lips_status, (x1, y2 + 40), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+
+            # 计算是否微笑
+            wlratio = WidthLengthRatio(landmarks)
+            Smiling = IsSmiling(Grinning, wlratio)
+
+            # 显示结果
+            lips_status = "Smiling" if Smiling else "Not Smiling"
+            cv2.putText(frame, lips_status, (x1, y2 + 60), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+
+            # 显示结果
+            lips_status = "Ratio Active" if wlratio else "Ratio not Active"
+            cv2.putText(frame, lips_status, (x1, y2 + 80), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
             # 获取用于 solvePnP 的 2D 点
             image_points = np.array([
