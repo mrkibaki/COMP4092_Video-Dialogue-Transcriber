@@ -5,7 +5,7 @@ from features.GazeTracking.gaze_tracking.gaze_tracking import GazeTracking
 from features.head_pose_estimation import estimate_head_pose
 
 from features.FaceModalAnalysisAlgorithm.MouthModalities import *
-from features.FaceModalAnalysisAlgorithm.FrowModalities import *
+from features.FaceModalAnalysisAlgorithm.BrowModalities import *
 from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import IsSmiling
 
 
