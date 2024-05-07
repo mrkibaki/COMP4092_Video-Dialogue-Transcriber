@@ -47,12 +47,6 @@ def InnerLipCon(landmarks, threshold=10):
     return False
 
 
-def MouthOpening(landmarks):
-    # return WidthLengthRatio(landmarks)
-    if InnerLipCon(landmarks):
-        return True
-
-
 # This function is used to calculate the ratio of mouth width to height. The possibility of having an open mouth is
 # observed by adjusting the threshold of the ratio.
 def WidthLengthRatio(landmarks):
@@ -75,5 +69,11 @@ def WidthLengthRatio(landmarks):
     threshold = 0.3
 
     return ratio > threshold
+
+
+def MouthOpening(landmarks):
+    # return WidthLengthRatio(landmarks)
+    if InnerLipCon(landmarks):
+        return True
 
 
