@@ -10,7 +10,7 @@ from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import *
 from features.FaceModalAnalysisAlgorithm.MouthModalities import *
 
 
-def face_detection():
+def face_detection(neutral_data):
     current_path = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_path, "Models/shape_predictor_68_face_landmarks.dat")
 
@@ -92,7 +92,7 @@ def face_detection():
             lips_status = "Ratio Active" if wlratio else "Ratio not Active"
             cv2.putText(frame, lips_status, (x1, y2 + 80), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
-            Frowning = FrownCon(landmarks, face)
+            Frowning = FrownCon(landmarks, face, neutral_data)
             # 绘制特定的面部特征点
             for n in [21, 22, 39, 42]:  # 眉毛内侧点和对应的眼角点
                 x = landmarks.part(n).x

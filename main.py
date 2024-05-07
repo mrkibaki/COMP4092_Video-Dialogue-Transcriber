@@ -6,5 +6,5 @@ from features.neutral_face_data import neutral_face_data_collection
 model_path = "./LBF/lbfmodel.yaml"
 
 # Function calls
-lrdata = neutral_face_data_collection()
-face_detection(lrdata)
+neutral_data = neutral_face_data_collection()
+face_detection(neutral_data)
