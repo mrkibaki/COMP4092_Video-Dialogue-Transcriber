@@ -38,9 +38,11 @@ def neutral_face_data_collection(video_source=0):
 
             # 示例：计算眉毛与眼角的垂直和水平距离
             right_brow_inner = landmarks.part(21)
-            right_eye_outer = landmarks.part(39)
-            vertical_distance = abs(right_brow_inner.y - right_eye_outer.y)
-            horizontal_distance = abs(right_brow_inner.x - right_eye_outer.x)
+            right_eye_inner = landmarks.part(39)
+            left_brow_inner = landmarks.part(22)
+            left_eye_inner = landmarks.part(42)
+            vertical_distance = abs(right_brow_inner.y - right_eye_inner.y)
+            horizontal_distance = abs(right_brow_inner.x - right_eye_inner.x)
 
             # 归一化距离
             normalized_vertical = vertical_distance / face_height
