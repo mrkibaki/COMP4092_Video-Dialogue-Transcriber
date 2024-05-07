@@ -92,7 +92,7 @@ def face_detection(neutral_data):
             lips_status = "Ratio Active" if wlratio else "Ratio not Active"
             cv2.putText(frame, lips_status, (x1, y2 + 80), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
-            Frowning = FrownCon(landmarks, face, neutral_data)
+            Frowning = FrownCon(landmarks, neutral_data)
             # 绘制特定的面部特征点
             for n in [21, 22, 39, 42]:  # 眉毛内侧点和对应的眼角点
                 x = landmarks.part(n).x
@@ -100,7 +100,7 @@ def face_detection(neutral_data):
                 cv2.circle(frame, (x*2, y*2), 2, (0, 255, 0), -1)
 
             # 显示结果
-            lips_status = "Frowing" if Frowning else "Not Frowing"
+            lips_status = "Frowning" if Frowning else "Not Frowning"
             cv2.putText(frame, lips_status, (x1, y2 + 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
             # 获取用于 solvePnP 的 2D 点

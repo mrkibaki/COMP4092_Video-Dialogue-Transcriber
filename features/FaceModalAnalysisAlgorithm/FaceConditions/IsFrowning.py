@@ -1,6 +1,6 @@
-from features.FaceModalAnalysisAlgorithm.BrowModalities import IsFrowning
+from features.FaceModalAnalysisAlgorithm.BrowModalities import *
 
 
-def FrownCon(landmarks, face, neutral_data):
-    if IsFrowning(landmarks, face, neutral_data):
+def FrownCon(landmarks, neutral_data):
+    if InnerEEBDist(landmarks, neutral_data) or InnerEBDist(landmarks, neutral_data):
         return True

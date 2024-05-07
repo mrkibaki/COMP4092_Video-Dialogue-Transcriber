@@ -12,6 +12,8 @@ def InnerEyeNEyeBrowDist(landmarks):
     # Normalize distances
     norm_distance_right = np.linalg.norm(right_brow_inner - right_eye_inner) / eye_width
     norm_distance_left = np.linalg.norm(left_brow_inner - left_eye_inner) / eye_width
+    print(f"norm dist left is: {norm_distance_left}")
+    print(f"norm dist right is: {norm_distance_right}")
 
     distance = {'left': norm_distance_left, 'right': norm_distance_right}
     return distance

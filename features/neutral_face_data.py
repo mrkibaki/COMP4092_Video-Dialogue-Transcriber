@@ -2,8 +2,9 @@ import cv2
 import dlib
 import os
 import time
-from features.NeutralThresholdDataCollection.InnerEyeNEyeBrowDist import *
-from features.NeutralThresholdDataCollection.AverageEEBDataCollection import *
+from features.NeutralThresholdDataCollection.InnerEEBDist import *
+from features.NeutralThresholdDataCollection.AvgDataCollection import *
+from features.NeutralThresholdDataCollection.InnerEBDist import *
 
 
 def neutral_face_data_collection(video_source=0):
@@ -22,8 +23,9 @@ def neutral_face_data_collection(video_source=0):
     collection_duration = 5  # Total duration for data collection
     interval = collection_duration / 10  # Interval between collections
     collect_data = False
-    distances_right = []
-    distances_left = []
+    EEB_distances_right = []
+    EEB_distances_left = []
+    EB_dist = []
 
     try:
         start_time = None  # Start time of collection
@@ -43,15 +45,17 @@ def neutral_face_data_collection(video_source=0):
 
                         # Function call for collecting the neutral distance between eye and eyebrow
                         norm_EEB_dist = InnerEyeNEyeBrowDist(landmarks)
-                        distances_left.append(norm_EEB_dist['left'])
-                        distances_right.append(norm_EEB_dist['right'])
+                        EEB_distances_left.append(norm_EEB_dist['left'])
+                        EEB_distances_right.append(norm_EEB_dist['right'])
+                        norm_EB_dist = InnerEBDist(landmarks)
+                        EB_dist.append(norm_EB_dist['ebdist'])
                 else:
                     # Once the collection duration is over, break the loop
                     break
             else:
                 # Display the message to start data collection
                 # 请按下空格开始收集数据，收集数据时间为5秒，请保持自然状态不动
-                message = "Press Space to collect data in 5 sec. Please stay neutral still."
+                message = "Press Space to collect data in 5 sec. Please stay neutral still after spacing."
                 textsize = cv2.getTextSize(message, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
                 textX = (frame.shape[1] - textsize[0]) // 2
                 textY = (frame.shape[0] + textsize[1]) // 2
@@ -71,8 +75,11 @@ def neutral_face_data_collection(video_source=0):
         cv2.destroyAllWindows()
 
     # Calculate the average of the collected distances
-    AvgDataSet = AvgData(distances_right, distances_left)
+    AvgDataSet = AvgData(EEB_distances_right, EEB_distances_left, EB_dist)
     print(f"Average Normalized Distance Right: {AvgDataSet['right']:.3f}")
     print(f"Average Normalized Distance Left: {AvgDataSet['left']:.3f}")
+
+    # AvgDataSet need to add EB_dist simutaneously
+    print(f"Average Normalized Distance Right: {AvgDataSet['ebdist']:.3f}")
 
     return AvgDataSet
