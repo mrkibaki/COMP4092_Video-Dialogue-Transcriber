@@ -6,7 +6,7 @@ from features.head_pose_estimation import estimate_head_pose
 
 from features.FaceModalAnalysisAlgorithm.FaceConditions.IsFrowning import *
 from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import *
-
+from features.FaceModalAnalysisAlgorithm.FaceConditions.FrowningNNoseLifting import *
 from features.FaceModalAnalysisAlgorithm.MouthModalities import *
 
 
@@ -87,16 +87,22 @@ def face_detection(neutral_data):
             lips_status = "Ratio Active" if wlratio else "Ratio not Active"
             cv2.putText(frame, lips_status, (x1, y2 + 80), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
-            Frowning = FrownCon(landmarks, neutral_data)
             # 绘制特定的面部特征点
             for n in [21, 22, 39, 42]:  # 眉毛内侧点和对应的眼角点
                 x = landmarks.part(n).x
                 y = landmarks.part(n).y
                 cv2.circle(frame, (x*2, y*2), 2, (0, 255, 0), -1)
 
-            # 显示结果
-            lips_status = "Frowning" if Frowning else "Not Frowning"
-            cv2.putText(frame, lips_status, (x1, y2 + 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            # 皱眉显示
+            Frowning = FrownCon(landmarks, neutral_data)
+            Frown_status = f"Frowning {Frowning:.2f}%"
+            # if Frowning else "Not Frowning"
+            cv2.putText(frame, Frown_status, (x1, y2 + 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+
+            # 皱眉和抬鼻显示
+            FNNL = FrowningNNoseLifting(landmarks, neutral_data)
+            FNNL_status = f"Frowning and Nose Lifting {FNNL:.2f}%"
+            cv2.putText(frame, FNNL_status, (x1, y2 + 120), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
             # 获取用于 solvePnP 的 2D 点
             image_points = np.array([

@@ -24,10 +24,23 @@ def InnerEEBDist(landmarks, neutral_data):
     # 定义阈值
     left_threshold = neutral_data['left'] * 0.9
     right_threshold = neutral_data['right'] * 0.9
-    # 目前的阈值是自然状态下的表情，需要调整到皱眉的阈值（可能是自然状态距离的0.97？问问gpt）
+    # 目前的阈值是自然状态下的表情，需要调整到皱眉的阈值
+    # 计算百分比差值
+    percentage_diff_right = min(1, max(0, np.exp(3 * (1 - distance_right / right_threshold)) - 1))
+    percentage_diff_left = min(1, max(0, np.exp(3 * (1 - distance_left / left_threshold)) - 1))
 
-    # 判断是否在皱眉
-    return distance_right < right_threshold and distance_left < left_threshold
+    # 返回百分比形式的可能性评分
+    possibility_right = percentage_diff_right * 100  # 转换为百分比
+    possibility_left = percentage_diff_left * 100  # 转换为百分比
+
+    print(f"Percentage Difference Right: {possibility_right:.2f}%")
+    print(f"Percentage Difference Left: {possibility_left:.2f}%")
+
+    # only one data is presented
+    if possibility_left > possibility_right:
+        return possibility_left
+    else:
+        return possibility_right
 
 
 def InnerEBDist(landmarks, neutral_data):
@@ -36,10 +49,19 @@ def InnerEBDist(landmarks, neutral_data):
     brow_dist = np.linalg.norm(right_brow_inner - left_brow_inner)
 
     eye_width = OuterEyePointDistance(landmarks)
-    norm_brow_dist = brow_dist/eye_width
+    norm_brow_dist = brow_dist / eye_width
     # 打印归一化的距离
     print(f"Normalized Distance Eyebrow: {norm_brow_dist}")
 
     threshold = neutral_data['ebdist'] * 0.8
 
-    return norm_brow_dist < threshold
+    if norm_brow_dist >= threshold:
+        # 如果大于或等于阈值，可能性为0（未皱眉）
+        return 0
+    else:
+        # 如果小于阈值，根据距离与阈值的比例返回一个可能性评分
+        # 比例越小，可能性评分越高，这里使用 1 - (比例) 来表示
+        # 用指数函数来增加数值的敏感度。
+        possibility = (min(1, max(0, np.exp(7 * (1 - norm_brow_dist / threshold)) - 1)))*100
+
+        return possibility

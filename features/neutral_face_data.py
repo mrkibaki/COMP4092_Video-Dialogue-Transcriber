@@ -80,6 +80,6 @@ def neutral_face_data_collection(video_source=0):
     print(f"Average Normalized Distance Left: {AvgDataSet['left']:.3f}")
 
     # AvgDataSet need to add EB_dist simutaneously
-    print(f"Average Normalized Distance Right: {AvgDataSet['ebdist']:.3f}")
+    print(f"Average Normalized Eyevrow Distance: {AvgDataSet['ebdist']:.3f}")
 
     return AvgDataSet
