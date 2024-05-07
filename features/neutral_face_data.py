@@ -1,61 +1,78 @@
 import cv2
 import dlib
-import numpy as np
 import os
 import time
+from features.NeutralThresholdDataCollection.InnerEyeNEyeBrowDist import *
+from features.NeutralThresholdDataCollection.AverageEEBDataCollection import *
 
 
 def neutral_face_data_collection(video_source=0):
-    # 初始化摄像头
+    # Initialize the camera
     cap = cv2.VideoCapture(video_source)
+    if not cap.isOpened():
+        print("Error: Camera resource isn't available.")
+        return
 
-    # 加载面部检测器和标志点预测器
+    # Load the facial detector and landmark predictor
     current_path = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_path, "Models/shape_predictor_68_face_landmarks.dat")
-
-    detector = dlib.get_frontal_face_detector()  # 使用HOG检测器
+    detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(model_path)
 
-    # 初始化计时器
-    start_time = time.time()
-    collection_duration = 5  # 收集数据的时间长度（秒）
+    collection_duration = 5  # Total duration for data collection
+    interval = collection_duration / 10  # Interval between collections
+    collect_data = False
+    distances_right = []
+    distances_left = []
 
-    # 收集数据
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    try:
+        start_time = None  # Start time of collection
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("Failed to grab frame from camera. Exiting...")
+                break
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = detector(gray)
+            if collect_data:
+                if time.time() - start_time < collection_duration:
+                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    faces = detector(gray)
 
-        for face in faces:
-            # 计算脸部宽度和高度，用于归一化
-            face_width = face.right() - face.left()
-            face_height = face.bottom() - face.top()
+                    for face in faces:
+                        landmarks = predictor(gray, face)
 
-            landmarks = predictor(gray, face)
+                        # Function call for collecting the neutral distance between eye and eyebrow
+                        norm_EEB_dist = InnerEyeNEyeBrowDist(landmarks)
+                        distances_left.append(norm_EEB_dist['left'])
+                        distances_right.append(norm_EEB_dist['right'])
+                else:
+                    # Once the collection duration is over, break the loop
+                    break
+            else:
+                # Display the message to start data collection
+                # 请按下空格开始收集数据，收集数据时间为5秒，请保持自然状态不动
+                message = "Press Space to collect data in 5 sec. Please stay neutral still."
+                textsize = cv2.getTextSize(message, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
+                textX = (frame.shape[1] - textsize[0]) // 2
+                textY = (frame.shape[0] + textsize[1]) // 2
+                cv2.putText(frame, message, (textX, textY), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-            # 示例：计算眉毛与眼角的垂直和水平距离
-            right_brow_inner = landmarks.part(21)
-            right_eye_inner = landmarks.part(39)
-            left_brow_inner = landmarks.part(22)
-            left_eye_inner = landmarks.part(42)
-            vertical_distance = abs(right_brow_inner.y - right_eye_inner.y)
-            horizontal_distance = abs(right_brow_inner.x - right_eye_inner.x)
+            cv2.imshow('Frame', frame)
+            key = cv2.waitKey(1)
+            if key & 0xFF == ord('q'):
+                break
+            elif key & 0xFF == ord(' '):
+                if not collect_data:
+                    collect_data = True
+                    start_time = time.time()
 
-            # 归一化距离
-            normalized_vertical = vertical_distance / face_height
-            normalized_horizontal = horizontal_distance / face_width
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
 
-            # 显示结果
-            cv2.putText(frame, f'Norm Vert: {normalized_vertical:.2f}, Norm Horiz: {normalized_horizontal:.2f}',
-                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    # Calculate the average of the collected distances
+    AvgDataSet = AvgData(distances_right, distances_left)
+    print(f"Average Normalized Distance Right: {AvgDataSet['right']:.3f}")
+    print(f"Average Normalized Distance Left: {AvgDataSet['left']:.3f}")
 
-        # 显示图像
-        cv2.imshow('Frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q') or (time.time() - start_time) > collection_duration:
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
+    return AvgDataSet
