@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def IsFrowing(landmarks):
+def IsFrowning(landmarks):
     # 获取眉毛内侧和眼角的点
     right_brow_inner = np.array([landmarks.part(21).x, landmarks.part(21).y])
     left_brow_inner = np.array([landmarks.part(22).x, landmarks.part(22).y])
