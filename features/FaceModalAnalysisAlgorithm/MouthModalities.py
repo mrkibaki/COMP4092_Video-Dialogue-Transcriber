@@ -75,5 +75,3 @@ def MouthOpening(landmarks):
     # return WidthLengthRatio(landmarks)
     if InnerLipCon(landmarks):
         return True
-
-

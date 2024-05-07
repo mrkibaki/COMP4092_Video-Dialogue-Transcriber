@@ -5,7 +5,3 @@ def IsSmiling(grinning, ratio):
     # More condition to be added
     if grinning and ratio:
         return True
-
-
-
-
