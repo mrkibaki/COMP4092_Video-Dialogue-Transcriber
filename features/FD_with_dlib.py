@@ -117,6 +117,11 @@ def face_detection(EEB_neutral_data, NB_neutral_data):
             na_status = f"Nasal angle {nasal_angle:.2f}%"
             cv2.putText(frame, na_status, (40, 240), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
+            # 抬眉显示
+            raise_eyebrow = RaiseEyebrow(landmarks, EEB_neutral_data)
+            re_status = f"raise eyebrow {raise_eyebrow:.2f}%"
+            cv2.putText(frame, re_status, (40, 260), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
+
             ###################################################################################################
 
             # 获取用于 solvePnP 的 2D 点
