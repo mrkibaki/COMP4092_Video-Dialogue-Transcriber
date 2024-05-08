@@ -65,3 +65,24 @@ def InnerEBDist(landmarks, neutral_data):
         possibility = (min(1, max(0, np.exp(7 * (1 - norm_brow_dist / threshold)) - 1)))*100
 
         return possibility
+
+
+def RaiseEyebrow(landmarks, neutral_data):
+    left_brow_inner = np.array([landmarks.part(22).x, landmarks.part(22).y])
+    right_brow_inner = np.array([landmarks.part(21).x, landmarks.part(21).y])
+    brow_dist = np.linalg.norm(right_brow_inner - left_brow_inner)
+
+    eye_width = OuterEyePointDistance(landmarks)
+    norm_brow_dist = brow_dist / eye_width
+    threshold = neutral_data['ebdist'] * 1.1
+
+    if norm_brow_dist >= threshold:
+        # 如果大于或等于阈值，可能性为0（未皱眉）
+        return 0
+    else:
+        # 如果小于阈值，根据距离与阈值的比例返回一个可能性评分
+        # 比例越小，可能性评分越高，这里使用 1 - (比例) 来表示
+        # 用指数函数来增加数值的敏感度。
+        possibility = (min(1, max(0, np.exp(7 * (1 - norm_brow_dist / threshold)) - 1))) * 100
+
+        return possibility
