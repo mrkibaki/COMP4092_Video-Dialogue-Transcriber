@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import os
-from .eye_detection import get_eye_region, detect_pupils
+from features.UnusedComponents.eye_detection import get_eye_region, detect_pupils
 
 
 def detect_face_mark(model_path):
