@@ -26,4 +26,10 @@ def NeutralNasalBridge(landmarks):
 
 
 def NeutralNasalSeptum(landmarks):
-    return 0
+    eye_width = OuterEyePointDistance(landmarks)
+    p30 = np.array([landmarks.part(30).x, landmarks.part(30).y])
+    p33 = np.array([landmarks.part(33).x, landmarks.part(33).y])
+    dist = np.linalg.norm(p30 - p33)
+    norm = dist/eye_width
+    nose_speptum = {'NS': norm}
+    return nose_speptum
