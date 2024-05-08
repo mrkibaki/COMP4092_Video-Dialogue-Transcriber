@@ -5,8 +5,19 @@ def NoseFlaring():
     return 0
 
 
-def LatitudinalRotation():
-    return 0
+def LatitudinalRotation(landmarks):
+    # 获取鼻梁的上端和下端
+    p27 = np.array([landmarks.part(27).x, landmarks.part(27).y])
+    p30 = np.array([landmarks.part(30).x, landmarks.part(30).y])
+
+    # 计算鼻梁向量
+    nose_vector = p30 - p27
+
+    # 计算与垂直线的夹角
+    angle = np.arctan2(nose_vector[1], nose_vector[0]) - np.arctan2(1, 0)
+    angle = np.degrees(angle)
+
+    return angle
 
 
 def LongitudinalRotation(landmarks, NB_neutral_data):

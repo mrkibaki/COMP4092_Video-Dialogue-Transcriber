@@ -65,6 +65,10 @@ def face_detection(EEB_neutral_data, NB_neutral_data):
 
             ###################################################################################################
 
+            # 绘制30和33直线
+            cv2.line(frame, (int(landmarks.part(30).x * 2), int(landmarks.part(30).y * 2)),
+                     (int(landmarks.part(33).x * 2), int(landmarks.part(33).y * 2)), (0, 255, 0), 1)
+
             # 模态检视部分，用于查看是否有张嘴或微笑
             mouth_con = MouthOpening(landmarks)
             mouth_status = "Mouth opened" if mouth_con else "Mouth closed"
@@ -107,6 +111,11 @@ def face_detection(EEB_neutral_data, NB_neutral_data):
             NB_status = (f"head up tilt: s1 {nasal_bridge['seg1']:.2f}%, s2 {nasal_bridge['seg2']:.2f}%, "
                          f"s3 {nasal_bridge['seg3']:.2f}%, NB {nasal_bridge['NB']:.2f}%")
             cv2.putText(frame, NB_status, (40, 220), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
+
+            # 鼻梁角度显示
+            nasal_angle = LatitudinalRotation(landmarks)
+            na_status = f"Nasal angle {nasal_angle:.2f}%"
+            cv2.putText(frame, na_status, (40, 240), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
             ###################################################################################################
 
