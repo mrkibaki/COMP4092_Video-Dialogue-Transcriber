@@ -7,10 +7,11 @@ from features.head_pose_estimation import estimate_head_pose
 from features.FaceModalAnalysisAlgorithm.FaceConditions.IsFrowning import *
 from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import *
 from features.FaceModalAnalysisAlgorithm.FaceConditions.FrowningNNoseLifting import *
+from features.FaceModalAnalysisAlgorithm.FaceConditions.HeadUpTilt import *
 from features.FaceModalAnalysisAlgorithm.MouthModalities import *
 
 
-def face_detection(neutral_data):
+def face_detection(EEB_neutral_data, NB_neutral_data):
     current_path = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_path, "Models/shape_predictor_68_face_landmarks.dat")
 
@@ -62,30 +63,31 @@ def face_detection(neutral_data):
                 y = int(landmarks.part(n).y * 2)
                 cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
+            ###################################################################################################
+
+            # 绘制30和33直线
+            cv2.line(frame, (int(landmarks.part(30).x * 2), int(landmarks.part(30).y * 2)),
+                     (int(landmarks.part(33).x * 2), int(landmarks.part(33).y * 2)), (0, 255, 0), 1)
+
             # 模态检视部分，用于查看是否有张嘴或微笑
-            if MouthOpening(landmarks):
-                cv2.putText(frame, "Mouth opened", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
-            else:
-                cv2.putText(frame, "Mouth closed", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            mouth_con = MouthOpening(landmarks)
+            mouth_status = "Mouth opened" if mouth_con else "Mouth closed"
+            cv2.putText(frame, mouth_status, (40, 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
             # 计算是否咧嘴
             Grinning = IsGrinning(landmarks)
-
-            # 显示结果
             lips_status = "Grinning" if Grinning else "Not Grinning"
-            cv2.putText(frame, lips_status, (x1, y2 + 40), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            cv2.putText(frame, lips_status, (40, 120), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
             # 计算是否微笑
             wlratio = WidthLengthRatio(landmarks)
             Smiling = IsSmiling(Grinning, wlratio)
-
-            # 显示结果
             lips_status = "Smiling" if Smiling else "Not Smiling"
-            cv2.putText(frame, lips_status, (x1, y2 + 60), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            cv2.putText(frame, lips_status, (40, 140), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
             # 显示结果
             lips_status = "Ratio Active" if wlratio else "Ratio not Active"
-            cv2.putText(frame, lips_status, (x1, y2 + 80), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            cv2.putText(frame, lips_status, (40, 160), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
             # 绘制特定的面部特征点
             for n in [21, 22, 39, 42]:  # 眉毛内侧点和对应的眼角点
@@ -94,15 +96,28 @@ def face_detection(neutral_data):
                 cv2.circle(frame, (x*2, y*2), 2, (0, 255, 0), -1)
 
             # 皱眉显示
-            Frowning = FrownCon(landmarks, neutral_data)
+            Frowning = FrownCon(landmarks, EEB_neutral_data)
             Frown_status = f"Frowning {Frowning:.2f}%"
             # if Frowning else "Not Frowning"
-            cv2.putText(frame, Frown_status, (x1, y2 + 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            cv2.putText(frame, Frown_status, (40, 180), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
             # 皱眉和抬鼻显示
-            FNNL = FrowningNNoseLifting(landmarks, neutral_data)
+            FNNL = FrowningNNoseLifting(landmarks, EEB_neutral_data)
             FNNL_status = f"Frowning and Nose Lifting {FNNL:.2f}%"
-            cv2.putText(frame, FNNL_status, (x1, y2 + 120), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            cv2.putText(frame, FNNL_status, (40, 200), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
+
+            # 鼻梁长度抬头显示
+            nasal_bridge = HeadUpTilt(landmarks, NB_neutral_data)
+            NB_status = (f"head up tilt: s1 {nasal_bridge['seg1']:.2f}%, s2 {nasal_bridge['seg2']:.2f}%, "
+                         f"s3 {nasal_bridge['seg3']:.2f}%, NB {nasal_bridge['NB']:.2f}%")
+            cv2.putText(frame, NB_status, (40, 220), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
+
+            # 鼻梁角度显示
+            nasal_angle = LatitudinalRotation(landmarks)
+            na_status = f"Nasal angle {nasal_angle:.2f}%"
+            cv2.putText(frame, na_status, (40, 240), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
+
+            ###################################################################################################
 
             # 获取用于 solvePnP 的 2D 点
             image_points = np.array([
@@ -137,13 +152,12 @@ def face_detection(neutral_data):
         elif gaze.is_center():
             text = "Looking center"
 
-        cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
+        cv2.putText(frame, text, (40, 60), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
         left_pupil = gaze.pupil_left_coords()
         right_pupil = gaze.pupil_right_coords()
-        cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
-        cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31),
-                    1)
+        cv2.putText(frame, "Left pupil:  " + str(left_pupil) + ", Right pupil: " + str(right_pupil),
+                    (40, 80), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0, 255, 0), 1)
 
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(1)

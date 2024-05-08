@@ -5,6 +5,7 @@ import time
 from features.NeutralThresholdDataCollection.InnerEEBDist import *
 from features.NeutralThresholdDataCollection.AvgDataCollection import *
 from features.NeutralThresholdDataCollection.InnerEBDist import *
+from features.NeutralThresholdDataCollection.NeutralNasalBridge import *
 
 
 def neutral_face_data_collection(video_source=0):
@@ -26,6 +27,11 @@ def neutral_face_data_collection(video_source=0):
     EEB_distances_right = []
     EEB_distances_left = []
     EB_dist = []
+
+    NB_seg1 = []
+    NB_seg2 = []
+    NB_seg3 = []
+    NB_len = []
 
     try:
         start_time = None  # Start time of collection
@@ -49,6 +55,14 @@ def neutral_face_data_collection(video_source=0):
                         EEB_distances_right.append(norm_EEB_dist['right'])
                         norm_EB_dist = InnerEBDist(landmarks)
                         EB_dist.append(norm_EB_dist['ebdist'])
+
+                        # Function call for collecting the length of nadal bridge and segments
+                        norm_NB_len = NeutralNasalBridge(landmarks)
+                        NB_seg1.append(norm_NB_len['seg1'])
+                        NB_seg2.append(norm_NB_len['seg2'])
+                        NB_seg3.append(norm_NB_len['seg3'])
+                        NB_len.append(norm_NB_len['NB'])
+
                 else:
                     # Once the collection duration is over, break the loop
                     break
@@ -75,11 +89,10 @@ def neutral_face_data_collection(video_source=0):
         cv2.destroyAllWindows()
 
     # Calculate the average of the collected distances
-    AvgDataSet = AvgData(EEB_distances_right, EEB_distances_left, EB_dist)
-    print(f"Average Normalized Distance Right: {AvgDataSet['right']:.3f}")
-    print(f"Average Normalized Distance Left: {AvgDataSet['left']:.3f}")
+    EEBAvgDataSet = EEBAvgData(EEB_distances_right, EEB_distances_left, EB_dist)
+    print(f"Average Normalized Distance Right: {EEBAvgDataSet['right']:.3f}")
+    print(f"Average Normalized Distance Left: {EEBAvgDataSet['left']:.3f}")
+    print(f"Average Normalized Eyevrow Distance: {EEBAvgDataSet['ebdist']:.3f}")
 
-    # AvgDataSet need to add EB_dist simutaneously
-    print(f"Average Normalized Eyevrow Distance: {AvgDataSet['ebdist']:.3f}")
-
-    return AvgDataSet
+    NBAvgDataSet = NBAvgData(NB_seg1, NB_seg2, NB_seg3, NB_len)
+    return EEBAvgDataSet, NBAvgDataSet
