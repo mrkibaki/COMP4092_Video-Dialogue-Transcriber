@@ -4,5 +4,5 @@ from features.neutral_face_data import neutral_face_data_collection
 # model_path = "./LBF/lbfmodel.yaml"
 
 # Function calls
-neutral_data = neutral_face_data_collection()
-face_detection(neutral_data)
+EEB_neutral_data, NB_neutral_data = neutral_face_data_collection()
+face_detection(EEB_neutral_data, NB_neutral_data)

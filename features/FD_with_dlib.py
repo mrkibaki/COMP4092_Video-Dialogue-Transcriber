@@ -7,10 +7,11 @@ from features.head_pose_estimation import estimate_head_pose
 from features.FaceModalAnalysisAlgorithm.FaceConditions.IsFrowning import *
 from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import *
 from features.FaceModalAnalysisAlgorithm.FaceConditions.FrowningNNoseLifting import *
+from features.FaceModalAnalysisAlgorithm.FaceConditions.HeadUpTilt import *
 from features.FaceModalAnalysisAlgorithm.MouthModalities import *
 
 
-def face_detection(neutral_data):
+def face_detection(EEB_neutral_data, NB_neutral_data):
     current_path = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_path, "Models/shape_predictor_68_face_landmarks.dat")
 
@@ -62,6 +63,8 @@ def face_detection(neutral_data):
                 y = int(landmarks.part(n).y * 2)
                 cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
+            ###################################################################################################
+
             # 模态检视部分，用于查看是否有张嘴或微笑
             if MouthOpening(landmarks):
                 cv2.putText(frame, "Mouth opened", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
@@ -94,15 +97,23 @@ def face_detection(neutral_data):
                 cv2.circle(frame, (x*2, y*2), 2, (0, 255, 0), -1)
 
             # 皱眉显示
-            Frowning = FrownCon(landmarks, neutral_data)
+            Frowning = FrownCon(landmarks, EEB_neutral_data)
             Frown_status = f"Frowning {Frowning:.2f}%"
             # if Frowning else "Not Frowning"
             cv2.putText(frame, Frown_status, (x1, y2 + 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
             # 皱眉和抬鼻显示
-            FNNL = FrowningNNoseLifting(landmarks, neutral_data)
+            FNNL = FrowningNNoseLifting(landmarks, EEB_neutral_data)
             FNNL_status = f"Frowning and Nose Lifting {FNNL:.2f}%"
             cv2.putText(frame, FNNL_status, (x1, y2 + 120), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+
+            # 鼻梁长度抬头显示
+            nasal_bridge = HeadUpTilt(landmarks, NB_neutral_data)
+            NB_status = (f"head up tilt: s1 {nasal_bridge['seg1']:.2f}%, s2 {nasal_bridge['seg2']:.2f}%, "
+                         f"s3 {nasal_bridge['seg3']:.2f}%, NB {nasal_bridge['NB']:.2f}%")
+            cv2.putText(frame, NB_status, (x1, y2 + 140), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+
+            ###################################################################################################
 
             # 获取用于 solvePnP 的 2D 点
             image_points = np.array([
