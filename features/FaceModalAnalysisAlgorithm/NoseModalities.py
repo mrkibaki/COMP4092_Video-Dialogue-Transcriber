@@ -14,8 +14,8 @@ def LatitudinalRotation(landmarks):
     nose_vector = p30 - p27
 
     # 计算与垂直线的夹角
-    angle = np.arctan2(nose_vector[1], nose_vector[0]) - np.arctan2(1, 0)
-    angle = np.degrees(angle)
+    angle_cal = np.arctan2(nose_vector[1], nose_vector[0]) - np.arctan2(1, 0)
+    angle = np.degrees(angle_cal)
 
     return angle
 
