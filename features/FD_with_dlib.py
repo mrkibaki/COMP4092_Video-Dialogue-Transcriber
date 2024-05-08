@@ -4,12 +4,13 @@ import os
 from features.GazeTracking.gaze_tracking.gaze_tracking import GazeTracking
 from features.head_pose_estimation import estimate_head_pose
 
+from features.FaceModalAnalysisAlgorithm.FaceConditions.IsFrowning import *
+from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import *
+from features.FaceModalAnalysisAlgorithm.FaceConditions.FrowningNNoseLifting import *
 from features.FaceModalAnalysisAlgorithm.MouthModalities import *
-from features.FaceModalAnalysisAlgorithm.FrowModalities import *
-from features.FaceModalAnalysisAlgorithm.FaceConditions.IsSmiling import IsSmiling
 
 
-def face_detection():
+def face_detection(neutral_data):
     current_path = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_path, "Models/shape_predictor_68_face_landmarks.dat")
 
@@ -47,11 +48,6 @@ def face_detection():
             (150.0, -150.0, -125.0)  # 右嘴角
         ])
 
-        # 摄像头内参，这里使用的是示例值，应根据您的相机进行调整
-        size = frame.shape
-        focal_length = size[1]
-        center = (size[1] // 2, size[0] // 2)
-
         for face in faces:
             x1 = int(face.left() * 2)
             y1 = int(face.top() * 2)
@@ -68,9 +64,9 @@ def face_detection():
 
             # 模态检视部分，用于查看是否有张嘴或微笑
             if MouthOpening(landmarks):
-                cv2.putText(frame, "Mouth is open", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+                cv2.putText(frame, "Mouth opened", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
             else:
-                cv2.putText(frame, "Mouth is closed", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+                cv2.putText(frame, "Mouth closed", (x1, y2 + 20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
             # 计算是否咧嘴
             Grinning = IsGrinning(landmarks)
@@ -91,16 +87,22 @@ def face_detection():
             lips_status = "Ratio Active" if wlratio else "Ratio not Active"
             cv2.putText(frame, lips_status, (x1, y2 + 80), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
-            Frowing = IsFrowing(landmarks)
             # 绘制特定的面部特征点
             for n in [21, 22, 39, 42]:  # 眉毛内侧点和对应的眼角点
                 x = landmarks.part(n).x
                 y = landmarks.part(n).y
                 cv2.circle(frame, (x*2, y*2), 2, (0, 255, 0), -1)
 
-            # 显示结果
-            lips_status = "Frowing" if Frowing else "Not Frowing"
-            cv2.putText(frame, lips_status, (x1, y2 + 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+            # 皱眉显示
+            Frowning = FrownCon(landmarks, neutral_data)
+            Frown_status = f"Frowning {Frowning:.2f}%"
+            # if Frowning else "Not Frowning"
+            cv2.putText(frame, Frown_status, (x1, y2 + 100), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
+
+            # 皱眉和抬鼻显示
+            FNNL = FrowningNNoseLifting(landmarks, neutral_data)
+            FNNL_status = f"Frowning and Nose Lifting {FNNL:.2f}%"
+            cv2.putText(frame, FNNL_status, (x1, y2 + 120), cv2.FONT_HERSHEY_DUPLEX, 0.6, (255, 255, 255), 1)
 
             # 获取用于 solvePnP 的 2D 点
             image_points = np.array([
@@ -112,10 +114,14 @@ def face_detection():
                 (landmarks.part(54).x * 2, landmarks.part(54).y * 2)  # 右嘴角
             ], dtype="double")
 
-            # Call the function to estimate head pose
+            # 调用函数估计头部姿态
             p1, p2 = estimate_head_pose(image_points, model_points, camera_matrix, dist_coeffs)
 
-            # 绘制线条：从鼻尖到计算出的点
+            # 确保p1和p2是整数类型的元组
+            p1 = (int(p1[0]), int(p1[1]))
+            p2 = (int(p2[0]), int(p2[1]))
+
+            # 在图像上绘制线条：从p1到p2
             cv2.line(frame, p1, p2, (255, 0, 0), 2)
 
         gaze.refresh(frame)
