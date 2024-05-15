@@ -14,12 +14,21 @@ def InnerEEBDist(landmarks, neutral_data):
     left_eye_inner = np.array([landmarks.part(42).x, landmarks.part(42).y])
 
     # 计算实际距离并归一化
-    distance_right = np.linalg.norm(right_brow_inner - right_eye_inner) / eye_width
-    distance_left = np.linalg.norm(left_brow_inner - left_eye_inner) / eye_width
+    right_dist = np.linalg.norm(right_brow_inner - right_eye_inner)
+    distance_right = right_dist / eye_width
+    left_dist = np.linalg.norm(left_brow_inner - left_eye_inner)
+    distance_left = left_dist / eye_width
 
     # 打印归一化的距离
-    print(f"Normalized Distance Right: {distance_right}")
-    print(f"Normalized Distance Left: {distance_left}")
+    # print(f"Normalized Distance Right: {distance_right}")
+    # print(f"Normalized Distance Left: {distance_left}")
+
+    # with open('BM_r.csv', 'a', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow([right_dist, distance_right])
+    # with open('BM_l.csv', 'a', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow([left_dist, distance_left])
 
     # 定义阈值
     left_threshold = neutral_data['left'] * 0.9
@@ -33,8 +42,8 @@ def InnerEEBDist(landmarks, neutral_data):
     possibility_right = percentage_diff_right * 100  # 转换为百分比
     possibility_left = percentage_diff_left * 100  # 转换为百分比
 
-    print(f"Percentage Difference Right: {possibility_right:.2f}%")
-    print(f"Percentage Difference Left: {possibility_left:.2f}%")
+    # print(f"Percentage Difference Right: {possibility_right:.2f}%")
+    # print(f"Percentage Difference Left: {possibility_left:.2f}%")
 
     # only one data is presented
     if possibility_left > possibility_right:
@@ -51,7 +60,16 @@ def InnerEBDist(landmarks, neutral_data):
     eye_width = OuterEyePointDistance(landmarks)
     norm_brow_dist = brow_dist / eye_width
     # 打印归一化的距离
-    print(f"Normalized Distance Eyebrow: {norm_brow_dist}")
+
+    # with open('data.csv', 'a', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow([brow_dist, norm_brow_dist])
+    # print(f"Normalized Distance Eyebrow: {brow_dist}")
+    # print(f"eye width: {norm_brow_dist}")
+    #
+    # with open('data.csv', 'r') as file:
+    #     last_line = list(csv.reader(file))[-1]
+    #     print(f"Last line written: {last_line}")
 
     threshold = neutral_data['ebdist'] * 0.9
 
